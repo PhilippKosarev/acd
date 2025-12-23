@@ -13,7 +13,7 @@ import acd
 
 
 class CLI:
-  'A file manager for Assetto Corsa Data (.acd) files'
+  'A CLI tool for viewing, packing and unpacking Assetto Corsa Data (.acd) files'
   def view(self, filename: str):
     'View a given ACD file'
     data = acd.read_file(filename)
@@ -49,16 +49,6 @@ class CLI:
     text = data.get(chosen_key)
     print(f"{typewriter.bolden(f'{chosen_key}:')}\n{text.strip()}")
 
-  def unpack(self, input_file: str, output_directory: str):
-    'Unpacks an ACD file into a directory'
-    data = acd.read_file(input_file)
-    os.mkdir(output_directory)
-    for key in data:
-      value = data.get(key)
-      path = os.path.join(output_directory, key)
-      with open(path, 'w') as file:
-        file.write(value)
-
   def pack(self, input_directory: str, output_file: str):
     'Packs a directory into an ACD file'
     files = os.listdir(input_directory)
@@ -73,8 +63,18 @@ class CLI:
       data[basename] = contents
     acd.write_file(output_file, data)
 
+  def unpack(self, input_file: str, output_directory: str):
+    'Unpacks an ACD file into a directory'
+    data = acd.read_file(input_file)
+    os.mkdir(output_directory)
+    for key in data:
+      value = data.get(key)
+      path = os.path.join(output_directory, key)
+      with open(path, 'w') as file:
+        file.write(value)
+
 cli = CLI()
-captain = Captain(cli, program='acd')
+captain = Captain(cli, 'acd', compact_help=True)
 
 # Running
 def main():

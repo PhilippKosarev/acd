@@ -13,14 +13,14 @@ def get_encryption_key(filename: str) -> str:
   string = string.lower()
   n_chars = len(string)
   string_ord = [ord(char) for char in string]
-  # Getting byte1
+  # 1
   items.append(sum(string_ord))
-  # Getting byte2
+  # 2
   num = 0
   for i in range(0, n_chars - 1, 2):
     num = num * string_ord[i] - string_ord[i+1]
   items.append(num)
-  # Getting byte3
+  # 3
   escape_char = '\u001b'
   escape_ord = ord(escape_char)
   num = 0
@@ -30,29 +30,29 @@ def get_encryption_key(filename: str) -> str:
     num = int(num / divisor)
     num += -27 - string_ord[i-1]
   items.append(num)
-  # Getting byte4
+  # 4
   num = 5763
   for i in range(1, n_chars):
     num -= string_ord[i]
   items.append(num)
-  # Getting byte5
+  # 5
   shift_in_char = '\u000f'
   shift_in_ord = ord(shift_in_char)
   num = 66
   for i in range(1, n_chars - 4, 4):
     num = num * (string_ord[i] + shift_in_ord) * (string_ord[i-1] + shift_in_ord) + 22
   items.append(num)
-  # Getting byte6
+  # 6
   num = 101
   for i in range(0, n_chars - 2, 2):
     num -= ord(string[i])
   items.append(num)
-  # Getting byte7
+  # 7
   num = 171
   for i in range(0, n_chars - 2, 2):
     num = num % string_ord[i]
   items.append(num)
-  # Getting byte8
+  # 8
   num = 171
   for i in range(n_chars - 1):
     num = int(num / string_ord[i]) + string_ord[i+1]
@@ -114,10 +114,9 @@ def encrypt_bytes(data: bytes, encryption_key: str) -> bytes:
 
 # Encrypts a string.
 def encrypt_string(string: str, encryption_key: str) -> bytes:
-  data = string.encode()
-  return encrypt_bytes(data, encryption_key)
+  return encrypt_bytes(string.encode(), encryption_key)
 
-# Reads given bytes as file.
+# Reads given bytes as a .acd file.
 def read_bytes(data: bytes, encryption_key: str) -> dict:
   sections = {}
   file = io.BytesIO(data)
@@ -134,15 +133,15 @@ def read_bytes(data: bytes, encryption_key: str) -> dict:
   file.close()
   return sections
 
-# Reads an acd file and returns a dict.
+# Reads a .acd file and returns a dict.
 def read_file(filename: str) -> dict:
   key = get_encryption_key(filename)
   with open(filename, 'rb') as file:
     data = read_bytes(file.read(), key)
   return data
 
-# Writes an acd from dict.
-# The given dictionary can only have strings as its keys and values.
+# Writes a .acd file from dict.
+# The given 'data' dictionary can only have strings as its keys and values.
 def write_file(filename: str, data: dict):
   data = dict(sorted(data.items()))
   encryption_key = get_encryption_key(filename)
