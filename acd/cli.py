@@ -20,6 +20,7 @@ class CLI:
   def view(self, acd_file: str):
     'View a given ACD file'
     data = acd.read_file(acd_file)
+    data = dict(sorted(data.items()))
     keys = list(data.keys())
     lines = [typewriter.bolden('Available files:')]
     printable_keys = []
@@ -57,6 +58,7 @@ class CLI:
     directory = Path(directory)
     files = [file for file in directory.iterdir() if file.is_file()]
     data = {file.name: file.read_text() for file in files}
+    data = dict(sorted(data.items()))
     acd.write_file(acd_file, data)
 
   def unpack(self, acd_file: str, directory: str):
@@ -64,7 +66,7 @@ class CLI:
     directory = Path(directory)
     directory.mkdir()
     data = acd.read_file(acd_file)
-    for key, value in data.items():
+    for key, value in sorted(data.items()):
       file = directory / key
       file.write_text(value)
 

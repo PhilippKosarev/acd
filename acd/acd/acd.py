@@ -146,7 +146,6 @@ def read_file(acd_file) -> dict:
 # The given 'data' dictionary can only have strings as its keys and values.
 def write_file(acd_file, data: dict):
   acd_file = Path(acd_file)
-  data = dict(sorted(data.items()))
   encryption_key = get_encryption_key(acd_file)
   result_bytes = bytearray()
   for key in data:
