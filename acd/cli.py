@@ -2,7 +2,7 @@
 
 # Imports
 from libjam import Captain, typewriter
-import os
+from pathlib import Path
 import sys
 
 # Trying to import readline so that input() will have history and such
@@ -17,9 +17,9 @@ from . import acd
 
 class CLI:
   'A CLI tool for viewing, packing and unpacking Assetto Corsa Data (.acd) files'
-  def view(self, filename: str):
+  def view(self, acd_file: str):
     'View a given ACD file'
-    data = acd.read_file(filename)
+    data = acd.read_file(acd_file)
     keys = list(data.keys())
     lines = [typewriter.bolden('Available files:')]
     printable_keys = []
@@ -52,29 +52,21 @@ class CLI:
     text = data.get(chosen_key)
     print(f"{typewriter.bolden(f'{chosen_key}:')}\n{text.strip()}")
 
-  def pack(self, input_directory: str, output_file: str):
+  def pack(self, directory: str, acd_file: str):
     'Packs a directory into an ACD file'
-    files = os.listdir(input_directory)
-    # Converting to absolute paths
-    files = [os.path.join(input_directory, file) for file in files]
-    files = [file for file in files if os.path.isfile(file)]
-    data = {}
-    for file in files:
-      basename = os.path.basename(file)
-      with open(file, 'r') as f:
-        contents = f.read()
-      data[basename] = contents
-    acd.write_file(output_file, data)
+    directory = Path(directory)
+    files = [file for file in directory.iterdir() if file.is_file()]
+    data = {file.name: file.read_text() for file in files}
+    acd.write_file(acd_file, data)
 
-  def unpack(self, input_file: str, output_directory: str):
+  def unpack(self, acd_file: str, directory: str):
     'Unpacks an ACD file into a directory'
-    data = acd.read_file(input_file)
-    os.mkdir(output_directory)
-    for key in data:
-      value = data.get(key)
-      path = os.path.join(output_directory, key)
-      with open(path, 'w') as file:
-        file.write(value)
+    directory = Path(directory)
+    directory.mkdir()
+    data = acd.read_file(acd_file)
+    for key, value in data.items():
+      file = directory / key
+      file.write_text(value)
 
 cli = CLI()
 captain = Captain(cli, 'acd', compact_help=True)

@@ -1,19 +1,19 @@
 # Imports
-import os
+from pathlib import Path
 import io
 
 # Returns the encryption key for a given file.
-def get_encryption_key(filename: str) -> str:
-  # Getting string
-  filename = os.path.abspath(filename)
-  string = os.path.basename(filename)
-  if string.lower().startswith('data'):
-    string = os.path.basename(os.path.dirname(filename))
-  # Getting key
+def get_encryption_key(acd_file) -> str:
+  # Getting relevant basename
+  acd_file = Path(acd_file)
+  acd_file = acd_file.absolute()
+  basename = acd_file.name.lower()
+  if basename.startswith('data'):
+    basename = acd_file.parent.name.lower()
+  # Getting prerequisites
   items = []
-  string = string.lower()
-  n_chars = len(string)
-  string_ord = [ord(char) for char in string]
+  n_chars = len(basename)
+  string_ord = [ord(char) for char in basename]
   # 1
   items.append(sum(string_ord))
   # 2
@@ -46,7 +46,7 @@ def get_encryption_key(filename: str) -> str:
   # 6
   num = 101
   for i in range(0, n_chars - 2, 2):
-    num -= ord(string[i])
+    num -= ord(basename[i])
   items.append(num)
   # 7
   num = 171
@@ -107,9 +107,9 @@ def encrypt_bytes(data: bytes, encryption_key: str) -> bytes:
   # Adding padding bytes
   padded_data = bytearray(len(data) * 4)
   for i in range(len(data)):
-    padded_data[i*4] = data[i]
+    padded_data[i * 4] = data[i]
     for n in range(1, 4):
-      padded_data[i*4+n] = 0
+      padded_data[i * 4 + n] = 0
   # Returning
   return padded_data
 
@@ -135,17 +135,19 @@ def read_bytes(data: bytes, encryption_key: str) -> dict:
   return sections
 
 # Reads a .acd file and returns a dict.
-def read_file(filename: str) -> dict:
-  key = get_encryption_key(filename)
-  with open(filename, 'rb') as file:
-    data = read_bytes(file.read(), key)
+def read_file(acd_file) -> dict:
+  acd_file = Path(acd_file)
+  key = get_encryption_key(acd_file)
+  data = acd_file.read_bytes()
+  data = read_bytes(data, key)
   return data
 
 # Writes a .acd file from dict.
 # The given 'data' dictionary can only have strings as its keys and values.
-def write_file(filename: str, data: dict):
+def write_file(acd_file, data: dict):
+  acd_file = Path(acd_file)
   data = dict(sorted(data.items()))
-  encryption_key = get_encryption_key(filename)
+  encryption_key = get_encryption_key(acd_file)
   result_bytes = bytearray()
   for key in data:
     value = data.get(key)
@@ -156,5 +158,4 @@ def write_file(filename: str, data: dict):
     result_bytes.extend(key.encode())
     result_bytes.extend(value_size)
     result_bytes.extend(value)
-  with open(filename, 'wb') as file:
-    file.write(result_bytes)
+  acd_file.write_bytes(result_bytes)
