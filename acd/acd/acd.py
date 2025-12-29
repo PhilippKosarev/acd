@@ -1,5 +1,6 @@
 # Imports
-import os, io
+import os
+import io
 
 # Returns the encryption key for a given file.
 def get_encryption_key(filename: str) -> str:

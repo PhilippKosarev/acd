@@ -2,14 +2,17 @@
 
 # Imports
 from libjam import Captain, typewriter
-import os, sys
+import os
+import sys
+
+# Trying to import readline so that input() will have history and such
 try:
   import readline
-except ImportError:
+except ModuleNotFoundError:
   pass
 
 # Backend
-import acd
+from . import acd
 
 
 class CLI:
