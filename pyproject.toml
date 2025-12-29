@@ -17,7 +17,7 @@ authors = [
 ]
 description = "A library and cli for reading and writing Assetto Corsa Data (.acd) files."
 readme = "README.md"
-requires-python = ">= 3.10.0"
+requires-python = ">= 3.14.0"
 classifiers = [
   "Programming Language :: Python :: 3",
   "Operating System :: OS Independent",
