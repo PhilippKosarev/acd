@@ -2,20 +2,17 @@
 from pathlib import Path
 import io
 
-# Returns the encryption key for a given file.
-def get_encryption_key(acd_file) -> str:
-  # Getting relevant basename
-  acd_file = Path(acd_file)
-  acd_file = acd_file.absolute()
-  basename = acd_file.name.lower()
-  if basename.startswith('data'):
-    basename = acd_file.parent.name.lower()
-  # Getting prerequisites
-  items = []
-  n_chars = len(basename)
-  string_ord = [ord(char) for char in basename]
+# Returns the encryption key for given `string`.
+# The `string` should be either the file's basename or, if the file's
+# basename starts with 'data' (case-insensitive), the basename of the
+# directory in which the file is located.
+def get_encryption_key_for_string(string: str) -> str:
+  # Prerequisites
+  string = string.lower()
+  n_chars = len(string)
+  string_ord = [ord(char) for char in string]
   # 1
-  items.append(sum(string_ord))
+  items = [sum(string_ord)]
   # 2
   num = 0
   for i in range(0, n_chars - 1, 2):
@@ -46,7 +43,7 @@ def get_encryption_key(acd_file) -> str:
   # 6
   num = 101
   for i in range(0, n_chars - 2, 2):
-    num -= ord(basename[i])
+    num -= ord(string[i])
   items.append(num)
   # 7
   num = 171
@@ -60,6 +57,15 @@ def get_encryption_key(acd_file) -> str:
   items.append(num)
   # Returning
   return '-'.join([str(item % 256) for item in items])
+
+# Returns the encryption key for a given path.
+def get_encryption_key_for_file(file) -> str:
+  file = Path(file)
+  file = file.absolute()
+  basename = file.name
+  if basename.lower().startswith('data'):
+    basename = file.parent.name
+  return get_encryption_key_for_string(basename)
 
 # Decrypts an enctyped string.
 def decrypt_bytes(data: bytes, encryption_key: str) -> str:
@@ -137,16 +143,16 @@ def read_bytes(data: bytes, encryption_key: str) -> dict:
 # Reads a .acd file and returns a dict.
 def read_file(acd_file) -> dict:
   acd_file = Path(acd_file)
-  key = get_encryption_key(acd_file)
+  encryption_key = get_encryption_key_for_file(acd_file)
   data = acd_file.read_bytes()
-  data = read_bytes(data, key)
+  data = read_bytes(data, encryption_key)
   return data
 
 # Writes a .acd file from dict.
 # The given 'data' dictionary can only have strings as its keys and values.
 def write_file(acd_file, data: dict):
   acd_file = Path(acd_file)
-  encryption_key = get_encryption_key(acd_file)
+  encryption_key = get_encryption_key_for_file(acd_file)
   result_bytes = bytearray()
   for key in data:
     value = data.get(key)
