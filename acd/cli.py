@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 
 # Imports
-from libjam import Captain, typewriter
+from libjam import Captain, typewriter, flashcard
 from pathlib import Path
 import sys
 
@@ -22,36 +22,21 @@ class CLI:
     data = acd.read_file(acd_file)
     data = dict(sorted(data.items()))
     keys = list(data.keys())
-    lines = [typewriter.bolden('Available files:')]
-    printable_keys = []
-    for i, key in enumerate(keys):
-      printable_keys.append(f'{i+1}) {key}')
-    lines.append(typewriter.list_to_columns(printable_keys, spacing=2))
-    lines.append('')
-    print('\n'.join(lines))
-    n_keys = len(keys)
+    print(typewriter.bolden('Available files:'))
     try:
-      while True:
-        choice = input(typewriter.bolden(
-          f'Input which file to view (1-{n_keys}, 0 to abort): '
-        )).strip()
-        if choice == '':
-          continue
-        elif choice == '0':
-          return 1
-        elif choice in [str(n) for n in range(1, n_keys+1)]:
-          chosen_key = keys[int(choice) - 1]
-          break
-        elif choice in keys:
-          chosen_key = choice
-          break
-        else:
-          print('Invalid input.')
+      chosen_key = flashcard.choose(
+        'Select which file to view',
+        keys,
+        typewriter.Style.BOLD,
+      )
     except KeyboardInterrupt:
-      print()
-      return 1
-    text = data.get(chosen_key)
-    print(f"{typewriter.bolden(f'{chosen_key}:')}\n{text.strip()}")
+      print('^C')
+      return 130
+    if not chosen_key:
+      return
+    text = data.get(chosen_key).strip()
+    title = typewriter.bolden(chosen_key + ':')
+    print(title + '\n' + text)
 
   def pack(self, directory: str, acd_file: str):
     'Packs a directory into an ACD file'
@@ -70,10 +55,11 @@ class CLI:
       file = directory / key
       file.write_text(value)
 
+
+# Creating the cli
 cli = CLI()
 captain = Captain(cli, 'acd', compact_help=True)
 
-# Running
 def main():
   function, args = captain.parse()
   return function(*args)
