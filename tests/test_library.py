@@ -1,8 +1,11 @@
 # Imports
 from pathlib import Path
-import unittest
-import tempfile
 import io
+import sys
+import tempfile
+import unittest
+
+sys.path.append('../')
 import acd
 
 # Example variables
@@ -32,7 +35,7 @@ class TestLibrary(unittest.TestCase):
 
   def test_reading_from_file_object(self):
     with open(example_file, 'rb') as file:
-      data = acd.read_from_file_object(file, example_encryption_key)
+      data = acd.read(file, example_encryption_key)
     self.assertEqual(data, example_dict)
 
   def test_reading_bytes(self):
@@ -49,7 +52,7 @@ class TestLibrary(unittest.TestCase):
 
   def test_writing_to_file_object(self):
     fp = io.BytesIO()
-    acd.write_to_file_object(fp, example_dict, example_encryption_key)
+    acd.write(fp, example_dict, example_encryption_key)
     b = fp.getvalue()
     self.assertEqual(b, example_encrypted_data)
 

@@ -121,17 +121,17 @@ def _encrypt_bytes(data: bytes, encryption_key: str) -> bytes:
 
 # Reads the given file-like object as if it were an acd file and
 # returns a dictionary representing its contents.
-def read_from_file_object(file, encryption_key: str) -> dict:
+def read(fp, encryption_key: str) -> dict:
   sections = {}
   while True:
-    key_size = file.read(4)
+    key_size = fp.read(4)
     if not key_size:
       break
     key_size = int.from_bytes(key_size, byteorder='little')
-    key = file.read(key_size).decode()
-    value_size = file.read(4)
+    key = fp.read(key_size).decode()
+    value_size = fp.read(4)
     value_size = int.from_bytes(value_size, byteorder='little')
-    value = file.read(value_size * 4)
+    value = fp.read(value_size * 4)
     value = _decrypt_bytes(value, encryption_key)
     sections[key] = value
   return sections
@@ -139,7 +139,7 @@ def read_from_file_object(file, encryption_key: str) -> dict:
 # Writes the given `data` dictionary to a file-like object as if it
 # were an acd file.
 # The given `data` dictionary's keys and values must be strings.
-def write_to_file_object(file, data: dict, encryption_key: str):
+def write(fp, data: dict, encryption_key: str):
   # Checking given dictionary
   for key, value in data.items():
     if not isinstance(key, str):
@@ -151,27 +151,27 @@ def write_to_file_object(file, data: dict, encryption_key: str):
     # Writing key
     key = key.encode()
     key_size = len(key).to_bytes(4, byteorder='little')
-    file.write(key_size)
-    file.write(key)
+    fp.write(key_size)
+    fp.write(key)
     # Writing value
     value = value.encode()
     value = _encrypt_bytes(value, encryption_key)
     value_size = len(value) // 4
     value_size = value_size.to_bytes(4, byteorder='little')
-    file.write(value_size)
-    file.write(value)
+    fp.write(value_size)
+    fp.write(value)
 
 # Reads the given data as an acd file and returns a dictionary
 # representing its contents.
 def read_bytes(data: bytes or bytearray, encryption_key: str) -> dict:
   file = io.BytesIO(data)
-  return read_from_file_object(file, encryption_key)
+  return read(file, encryption_key)
 
 # Writes the given `data` dictionary to bytes using the acd format.
 # The given `data` dictionary's keys and values must be strings.
 def write_bytes(data: dict, encryption_key: str) -> bytes:
   file = io.BytesIO()
-  write_to_file_object(file, data, encryption_key)
+  write(file, data, encryption_key)
   return file.getvalue()
 
 # Reads the `acd_file` and returns a dictionary representing its
@@ -179,7 +179,7 @@ def write_bytes(data: dict, encryption_key: str) -> bytes:
 def read_file(acd_file) -> dict:
   encryption_key = get_encryption_key_for_file(acd_file)
   with open(acd_file, 'rb') as file:
-    return read_from_file_object(file, encryption_key)
+    return read(file, encryption_key)
 
 # Writes the given `data` dictionary to an `acd_file` which can be a
 # Path or a path-like object.
@@ -187,4 +187,4 @@ def read_file(acd_file) -> dict:
 def write_file(acd_file, data: dict):
   encryption_key = get_encryption_key_for_file(acd_file)
   with open(acd_file, 'wb') as file:
-    write_to_file_object(file, data, encryption_key)
+    write(file, data, encryption_key)
