@@ -33,38 +33,38 @@ class TestLibrary(unittest.TestCase):
     another_encryption_key = acd.get_encryption_key_for_string(example_file_name)
     self.assertEqual(another_encryption_key, encryption_key)
 
-  def test_reading_from_file_object(self):
+  def test_read(self):
     with open(example_file, 'rb') as file:
       data = acd.read(file, example_encryption_key)
     self.assertEqual(data, example_dict)
 
-  def test_reading_bytes(self):
+  def test_read_bytes(self):
     data = acd.read_bytes(example_encrypted_data, example_encryption_key)
     self.assertEqual(data, example_dict)
     data = acd.read_bytes(bytearray(example_encrypted_data), example_encryption_key)
     self.assertEqual(data, example_dict)
 
-  def test_reading_file(self):
+  def test_read_file(self):
     data = acd.read_file(example_file)
     self.assertEqual(data, example_dict)
     data = acd.read_file(str(example_file))
     self.assertEqual(data, example_dict)
 
-  def test_writing_to_file_object(self):
+  def test_write(self):
     fp = io.BytesIO()
-    acd.write(fp, example_dict, example_encryption_key)
+    acd.write(example_dict, fp, example_encryption_key)
     b = fp.getvalue()
     self.assertEqual(b, example_encrypted_data)
 
-  def test_writing_to_bytes(self):
+  def test_write_bytes(self):
     b = acd.write_bytes(example_dict, example_encryption_key)
     self.assertEqual(b, example_encrypted_data)
 
-  def test_writing_to_file(self):
+  def test_write_file(self):
     with tempfile.TemporaryDirectory() as tmp:
       out_file = Path(tmp) / 'data.acd'
-      acd.write_file(out_file, example_dict)
+      acd.write_file(example_dict, out_file)
       data1 = acd.read_file(out_file)
       data2 = acd.read_file(str(out_file))
+    self.assertEqual(data1, data2)
     self.assertEqual(data1, example_dict)
-    self.assertEqual(data2, example_dict)

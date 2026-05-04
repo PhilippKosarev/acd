@@ -2,11 +2,16 @@
 import os
 import io
 
-# Returns the encryption key for given `string`.
-# The `string` should be either the file's basename or, if the file's
-# basename starts with 'data' (case-insensitive), the basename of the
-# directory in which the file is located.
+
 def get_encryption_key_for_string(string: str) -> str:
+  """Generates the encryption key using the given string.
+
+  To get the right encryption key for a given file, use its basename as
+  as the string, unless it starts with 'data' (case-insensitive).
+
+  If the file's basename does start with 'data', then the basename of
+  the directory that the file is in should be used.
+  """
   # Prerequisites
   string = string.lower()
   n_chars = len(string)
@@ -19,12 +24,10 @@ def get_encryption_key_for_string(string: str) -> str:
     num = num * string_ord[i] - string_ord[i+1]
   items.append(num)
   # 3
-  escape_char = '\u001b'
-  escape_ord = ord(escape_char)
   num = 0
   for i in range(1, n_chars - 3, 3):
     num *= string_ord[i]
-    divisor = string_ord[i+1] + escape_ord
+    divisor = string_ord[i+1] + 27
     num = int(num / divisor)
     num += -27 - string_ord[i-1]
   items.append(num)
@@ -34,11 +37,9 @@ def get_encryption_key_for_string(string: str) -> str:
     num -= string_ord[i]
   items.append(num)
   # 5
-  shift_in_char = '\u000f'
-  shift_in_ord = ord(shift_in_char)
   num = 66
   for i in range(1, n_chars - 4, 4):
-    num = num * (string_ord[i] + shift_in_ord) * (string_ord[i-1] + shift_in_ord) + 22
+    num = num * (string_ord[i] + 15) * (string_ord[i-1] + 15) + 22
   items.append(num)
   # 6
   num = 101
@@ -53,13 +54,16 @@ def get_encryption_key_for_string(string: str) -> str:
   # 8
   num = 171
   for i in range(n_chars - 1):
-    num = int(num / string_ord[i]) + string_ord[i+1]
+    num = int(num / string_ord[i]) + string_ord[i + 1]
   items.append(num)
   # Returning
   return '-'.join([str(item % 256) for item in items])
 
-# Returns the encryption key for a given path.
+
 def get_encryption_key_for_file(file) -> str:
+  """Generates the encryption key for the given `file` (a `str` or
+  path-like object).
+  """
   file = os.path.abspath(file)
   basename = os.path.basename(file)
   if basename.lower().startswith('data'):
@@ -67,7 +71,7 @@ def get_encryption_key_for_file(file) -> str:
     basename = os.path.basename(parent)
   return get_encryption_key_for_string(basename)
 
-# Decrypts an enctyped string.
+
 def _decrypt_bytes(data: bytes, encryption_key: str) -> str:
   # Getting every 4th byte
   full = data[::4]
@@ -93,7 +97,7 @@ def _decrypt_bytes(data: bytes, encryption_key: str) -> str:
   # Returning
   return data.decode()
 
-# Encrypts given bytes.
+
 def _encrypt_bytes(data: bytes, encryption_key: str) -> bytes:
   data = bytearray(data)
   # Encrypting
@@ -119,9 +123,14 @@ def _encrypt_bytes(data: bytes, encryption_key: str) -> bytes:
   # Returning
   return bytes(padded_data)
 
-# Reads the given file-like object as if it were an acd file and
-# returns a dictionary representing its contents.
+
 def read(fp, encryption_key: str) -> dict:
+  """Deserialises `fp` (a `.read()`-supporting file-like object) to a
+  dictionary where all the keys and values are strings.
+
+  The `encryption_key` can be obtained using either
+  `get_encryption_key_for_string` or `get_encryption_key_for_file`.
+  """
   sections = {}
   while True:
     key_size = fp.read(4)
@@ -136,17 +145,21 @@ def read(fp, encryption_key: str) -> dict:
     sections[key] = value
   return sections
 
-# Writes the given `data` dictionary to a file-like object as if it
-# were an acd file.
-# The given `data` dictionary's keys and values must be strings.
-def write(fp, data: dict, encryption_key: str):
-  # Checking given dictionary
-  for key, value in data.items():
+
+def write(data: dict, fp, encryption_key: str):
+  """Serialises `data` (a dictionary where all the keys and values are
+  strings) to `fp` (a `.write()`-supporting file-like object).
+
+  The `encryption_key` can be obtained using either
+  `get_encryption_key_for_string` or `get_encryption_key_for_file`.
+  """
+  # Checking the given dictionary
+  for i, (key, value) in enumerate(data.items()):
     if not isinstance(key, str):
       raise TypeError(f"Key '{key}' in given dictionary is not a string")
     if not isinstance(value, str):
       raise TypeError(f"Value '{value}' in given dictionary is not a string")
-  # Writing to file object
+  # Writing to the file object
   for key, value in data.items():
     # Writing key
     key = key.encode()
@@ -161,30 +174,44 @@ def write(fp, data: dict, encryption_key: str):
     fp.write(value_size)
     fp.write(value)
 
-# Reads the given data as an acd file and returns a dictionary
-# representing its contents.
-def read_bytes(data: bytes or bytearray, encryption_key: str) -> dict:
-  file = io.BytesIO(data)
-  return read(file, encryption_key)
 
-# Writes the given `data` dictionary to bytes using the acd format.
-# The given `data` dictionary's keys and values must be strings.
+def read_bytes(data: bytes or bytearray, encryption_key: str) -> dict:
+  """Deserialises `data` (a `bytes` or `bytearray` instance) to a
+  dictionary where all the keys and values are strings.
+
+  The `encryption_key` can be obtained using either
+  `get_encryption_key_for_string` or `get_encryption_key_for_file`.
+  """
+  with io.BytesIO(data) as fp:
+    return read(fp, encryption_key)
+
+
 def write_bytes(data: dict, encryption_key: str) -> bytes:
+  """Serialises `data` (a dictionary where all the keys and values are
+  strings) to `bytes`.
+
+  The `encryption_key` can be obtained using either
+  `get_encryption_key_for_string` or `get_encryption_key_for_file`.
+  """
   file = io.BytesIO()
-  write(file, data, encryption_key)
+  write(data, file, encryption_key)
   return file.getvalue()
 
-# Reads the `acd_file` and returns a dictionary representing its
-# contents.
-def read_file(acd_file) -> dict:
-  encryption_key = get_encryption_key_for_file(acd_file)
-  with open(acd_file, 'rb') as file:
-    return read(file, encryption_key)
 
-# Writes the given `data` dictionary to an `acd_file` which can be a
-# Path or a path-like object.
-# The given `data` dictionary's keys and values must be strings.
-def write_file(acd_file, data: dict):
-  encryption_key = get_encryption_key_for_file(acd_file)
-  with open(acd_file, 'wb') as file:
-    write(file, data, encryption_key)
+def read_file(file) -> dict:
+  """Deserialises the contents of the `file` (a `str` or path-like
+  object) to a dictionary where all the keys and values are strings.
+  """
+  encryption_key = get_encryption_key_for_file(file)
+  with open(file, 'rb') as fp:
+    return read(fp, encryption_key)
+
+
+def write_file(data: dict, file):
+  """Serialises `data` (a dictionary where all the keys and values are
+  strings) and writes the result to the `file` (a `str` or path-like
+  object).
+  """
+  encryption_key = get_encryption_key_for_file(file)
+  with open(file, 'wb') as fp:
+    write(data, fp, encryption_key)
