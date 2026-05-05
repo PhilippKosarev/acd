@@ -7,9 +7,9 @@ def get_encryption_key_for_string(string: str) -> str:
   """Generates the encryption key using the given string.
 
   To get the right encryption key for a given file, use its basename as
-  as the string, unless it starts with 'data' (case-insensitive).
+  as the string, unless it starts with "data" (case-insensitive).
 
-  If the file's basename does start with 'data', then the basename of
+  If the file's basename does start with "data", then the basename of
   the directory that the file is in should be used.
   """
   # Prerequisites

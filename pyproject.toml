@@ -1,37 +1,42 @@
-[build-system]
-build-backend = "hatchling.build"
-requires = [
-  "hatchling",
-]
-
-[tool.hatch.build.targets.wheel]
-include = [
-  "acd",
-]
-
 [project]
 name = "acd"
+description = "A library and CLI for reading and writing Assetto Corsa Data (.acd) files."
 version = "0.0.1"
-authors = [
-  {name = "Philipp Kosarev", email = "philipp.kosarev@gmail.com"},
-]
-description = "A library and cli for reading and writing Assetto Corsa Data (.acd) files."
+
 readme = "README.md"
-requires-python = ">= 3.14.0"
+license = "GPL-2.0"
+license-files = ["LICEN[CS]E*"]
+
 classifiers = [
   "Programming Language :: Python :: 3",
   "Operating System :: OS Independent",
 ]
-license = "GPL-2.0"
-license-files = ["LICEN[CS]E*"]
 
-dependencies = [
-  "libjam == 0.1.9",
-]
+requires-python = ">= 3.14.0"
+depencencies = []
 
-[project.scripts]
-acd = "acd.cli:main"
+[[project.authors]]
+name = "Philipp Kosarev"
+email = "philipp.kosarev@gmail.com"
 
 [project.urls]
 Homepage = "https://github.com/philippkosarev/acd"
 Issues = "https://github.com/philippkosarev/acd/issues"
+
+[project.scripts]
+acd = "acd.cli:main"
+
+[dependency-groups]
+docs = [
+  "sphinx",
+  "sphinx-copybutton",
+  "pydata-sphinx-theme",
+  "commonmark",
+]
+
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
+
+[tool.hatch.build.targets.wheel]
+include = ["acd"]
