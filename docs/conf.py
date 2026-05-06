@@ -30,6 +30,9 @@ autodoc_default_options = {
 
 # HTML theme
 html_theme = 'pydata_sphinx_theme'
+html_sidebars = {
+  '**': [],
+}
 
 # Hooks
 def docstring(app, what, name, obj, options, lines):
