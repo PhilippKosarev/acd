@@ -14,6 +14,7 @@ project = 'acd'
 copyright = '2026, Philipp Kosarev'
 author = 'Philipp Kosarev'
 
+templates_path = ['templates']
 exclude_patterns = ['build']
 
 # Extensions
@@ -30,9 +31,15 @@ autodoc_default_options = {
 
 # HTML theme
 html_theme = 'pydata_sphinx_theme'
-html_sidebars = {
-  '**': [],
+html_static_path = ['static']
+html_css_files = ['style.css']
+html_sidebars = { '**': [] }
+html_theme_options = {
+  'secondary_sidebar_items': [],
+  'pygments_dark_style': 'material',
 }
+
+
 
 # Hooks
 def docstring(app, what, name, obj, options, lines):

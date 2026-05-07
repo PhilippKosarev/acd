@@ -1,0 +1,23 @@
+html[data-theme="light"] {
+  --pst-color-background: hsl(206, 85%, 97%);
+  --pst-color-on-background: hsl(207, 100%, 97%);
+  --pst-color-surface: hsl(207, 100%, 96%);
+  --pst-color-info-bg: hsl(204, 75%, 80%);
+  --pst-color-info: hsl(188, 45%, 48%);
+  --pst-color-secondary: hsl(185, 65%, 47%);
+  --pst-color-accent: hsl(185, 65%, 47%);
+  --pst-color-text-base: hsl(200, 70%, 20%);
+  --pst-color-inline-code: hsl(207, 70%, 35%);
+}
+
+html[data-theme="dark"] {
+  --pst-color-background: hsl(200, 90%, 9%);
+  --pst-color-on-background: hsl(195, 95%, 12%);
+  --pst-color-surface: hsl(195, 80%, 9%);
+  --pst-color-info-bg: hsl(200, 75%, 22%);
+  --pst-color-info: hsl(206, 60%, 55%);
+  --pst-color-secondary: hsl(185, 90%, 27%);
+  --pst-color-accent: hsl(185, 90%, 27%);
+  --pst-color-text-base: hsl(200, 25%, 85%);
+  --pst-color-inline-code: hsl(194, 68%, 73%);
+}
