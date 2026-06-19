@@ -1,6 +1,5 @@
 from .acd import (
-  get_encryption_key_for_string,
-  get_encryption_key_for_file,
+  get_encryption_key,
   read,
   write,
   read_bytes,

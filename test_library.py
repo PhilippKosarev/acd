@@ -7,25 +7,25 @@ import tempfile
 import acd
 
 # Example data
-example_encryption_key = '192-45-0-55-66-241-55-117'
+example_encryption_key = b'192-45-0-55-66-241-55-117'
 example_data = {'example-file': 'example file contents'}
 example_data_encrypted = b'\x0c\x00\x00\x00example-file\x15\x00\x00\x00\x96\x00\x00\x00\xb1\x00\x00\x00\x93\x00\x00\x00\x9a\x00\x00\x00\xa4\x00\x00\x00\xa1\x00\x00\x00\x92\x00\x00\x00P\x00\x00\x00\x93\x00\x00\x00\x9e\x00\x00\x00\xa1\x00\x00\x00\x92\x00\x00\x00V\x00\x00\x00\x99\x00\x00\x00\x9c\x00\x00\x00\xa0\x00\x00\x00\xa8\x00\x00\x00\x96\x00\x00\x00\x9b\x00\x00\x00\xa9\x00\x00\x00\xa8\x00\x00\x00'
 
 # Tests
-def test_get_encryption_key_for_string():
-  encryption_key = acd.get_encryption_key_for_string('test')
+def test_get_encryption_key():
+  # Testing a string
+  encryption_key = acd.get_encryption_key('test')
   assert encryption_key == example_encryption_key
-
-def test_get_encryption_key_for_file():
+  # Testing a Path
   d = Path().cwd() / 'this' / 'is' / 'a' / 'test'
-  encryption_key = acd.get_encryption_key_for_file(d / 'data.acd')
+  encryption_key = acd.get_encryption_key(d / 'data.acd')
   assert encryption_key == example_encryption_key
-  encryption_key = acd.get_encryption_key_for_file(d / 'data')
+  encryption_key = acd.get_encryption_key(d / 'data')
   assert encryption_key == example_encryption_key
-  encryption_key = acd.get_encryption_key_for_file(d / 'dAtA.bip.bop')
+  encryption_key = acd.get_encryption_key(d / 'dAtA.bip.bop')
   assert encryption_key == example_encryption_key
-  encryption_key = acd.get_encryption_key_for_file(d / 'duck.pond')
-  assert encryption_key == '134-78-80-97-174-1-25-101'
+  encryption_key = acd.get_encryption_key(d / 'duck.pond')
+  assert encryption_key == b'134-78-80-97-174-1-25-101'
 
 def test_read():
   fp = io.BytesIO(example_data_encrypted)

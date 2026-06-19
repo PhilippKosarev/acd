@@ -3,195 +3,150 @@ import os
 import io
 
 
-def get_encryption_key_for_string(string: str) -> str:
-  """Generates the encryption key using the given string.
-
-  To get the right encryption key for a given file, use its basename as
-  as the string, unless it starts with "data" (case-insensitive).
-
-  If the file's basename does start with "data", then the basename of
-  the directory that the file is in should be used.
-  """
-  # Prerequisites
-  string = string.lower()
-  n_chars = len(string)
-  string_ord = [ord(char) for char in string]
+def get_encryption_key(file, /) -> bytes:
+  """Generates an encryption key from a string or path-like object."""
+  name = os.path.basename(file).lower()
+  if name.startswith('data'):
+    file = os.path.abspath(file)
+    name = os.path.dirname(file)
+    name = os.path.basename(name).lower()
+  name = name.encode()
+  name_len = len(name)
   # 1
-  items = [sum(string_ord)]
+  parts = [sum(name)]
   # 2
   num = 0
-  for i in range(0, n_chars - 1, 2):
-    num = num * string_ord[i] - string_ord[i+1]
-  items.append(num)
+  for i in range(0, name_len - 1, 2):
+    num = num * name[i] - name[i + 1]
+  parts.append(num)
   # 3
   num = 0
-  for i in range(1, n_chars - 3, 3):
-    num *= string_ord[i]
-    divisor = string_ord[i+1] + 27
-    num = int(num / divisor)
-    num += -27 - string_ord[i-1]
-  items.append(num)
+  for i in range(1, name_len - 3, 3):
+    num *= name[i]
+    num = int(num / (name[i + 1] + 27))
+    num -= 27 + name[i - 1]
+  parts.append(num)
   # 4
-  num = 5763
-  for i in range(1, n_chars):
-    num -= string_ord[i]
-  items.append(num)
+  num = 131
+  for i in range(1, name_len):
+    num -= name[i]
+  parts.append(num)
   # 5
   num = 66
-  for i in range(1, n_chars - 4, 4):
-    num = num * (string_ord[i] + 15) * (string_ord[i-1] + 15) + 22
-  items.append(num)
+  for i in range(1, name_len - 4, 4):
+    num = num * (name[i] + 15) * (name[i-1] + 15) + 22
+  parts.append(num)
   # 6
   num = 101
-  for i in range(0, n_chars - 2, 2):
-    num -= ord(string[i])
-  items.append(num)
+  for i in range(0, name_len - 2, 2):
+    num -= name[i]
+  parts.append(num)
   # 7
   num = 171
-  for i in range(0, n_chars - 2, 2):
-    num = num % string_ord[i]
-  items.append(num)
+  for i in range(0, name_len - 2, 2):
+    num = num % name[i]
+  parts.append(num)
   # 8
   num = 171
-  for i in range(n_chars - 1):
-    num = int(num / string_ord[i]) + string_ord[i + 1]
-  items.append(num)
-  # Returning
-  return '-'.join([str(item % 256) for item in items])
+  for i in range(name_len - 1):
+    num = int(num / name[i]) + name[i + 1]
+  parts.append(num)
+  # Assemling and returning
+  encryption_key = '-'.join([str(i % 256) for i in parts]).encode()
+  return encryption_key
 
 
-def get_encryption_key_for_file(file) -> str:
-  """Generates the encryption key for the given `file` (a `str` or
-  path-like object).
-  """
-  file = os.path.abspath(file)
-  basename = os.path.basename(file)
-  if basename.lower().startswith('data'):
-    parent = os.path.dirname(file)
-    basename = os.path.basename(parent)
-  return get_encryption_key_for_string(basename)
-
-
-def _decrypt_bytes(data: bytes, encryption_key: str) -> str:
-  # Getting every 4th byte
-  full = data[::4]
-  data = bytearray(len(full))
-  i = 0
-  while i < len(full):
-    data[i] = full[i]
-    i += 1
-  # Decrypting
-  i = 0
-  n_bytes = len(data)
-  n_chars = len(encryption_key)
+def _decrypt_bytes(data: bytes, encryption_key: bytes) -> bytearray:
+  encryption_key_len = len(encryption_key)
   num = 0
-  while i < n_bytes:
-    temp = data[i] - ord(encryption_key[num])
-    temp = temp % 256
-    data[i] = temp
-    if num == n_chars - 1:
-      num = 0
-    else:
-      num += 1
-    i += 1
-  # Returning
-  return data.decode()
+  buf = bytearray()
+  for byte in data[::4]:
+    buf.append((byte - encryption_key[num]) % 256)
+    num = (num + 1) % encryption_key_len
+  return buf
 
 
-def _encrypt_bytes(data: bytes, encryption_key: str) -> bytes:
-  data = bytearray(data)
-  # Encrypting
-  i = 0
-  n_bytes = len(data)
-  n_chars = len(encryption_key)
+def _encrypt_bytes(data: bytes, encryption_key: bytes) -> bytearray:
+  encryption_key_len = len(encryption_key)
+  buf = bytearray()
   num = 0
-  while i < n_bytes:
-    temp = data[i] + ord(encryption_key[num])
-    temp = temp % 256
-    data[i] = temp
-    if num == n_chars - 1:
-      num = 0
-    else:
-      num += 1
-    i += 1
-  # Adding padding
-  padded_data = bytearray(len(data) * 4)
-  for i in range(len(data)):
-    padded_data[i * 4] = data[i]
-    for n in range(1, 4):
-      padded_data[i * 4 + n] = 0
-  # Returning
-  return bytes(padded_data)
+  for byte in data:
+    buf.append((byte + encryption_key[num]) % 256)
+    buf.extend(b'\0\0\0')
+    num = (num + 1) % encryption_key_len
+  return buf
 
 
-def read(fp, encryption_key: str) -> dict:
+def read(fp, encryption_key: bytes) -> dict:
   """Deserialises `fp` (a `.read()`-supporting file-like object) to a
   dictionary where all the keys and values are strings.
 
-  The `encryption_key` can be obtained using either
-  `get_encryption_key_for_string` or `get_encryption_key_for_file`.
+  The `encryption_key` can be generated by the `get_encryption_key`
+  function.
   """
   sections = {}
   while True:
-    key_size = fp.read(4)
-    if not key_size:
+    key_len = fp.read(4)
+    if not key_len:
       break
-    key_size = int.from_bytes(key_size, byteorder='little')
-    key = fp.read(key_size).decode()
-    value_size = fp.read(4)
-    value_size = int.from_bytes(value_size, byteorder='little')
-    value = fp.read(value_size * 4)
+    key_len = int.from_bytes(key_len, byteorder='little')
+    key = fp.read(key_len)
+    if len(key) != key_len:
+      raise EOFError('Expected EOF while reading key')
+    key = key.decode('utf-8')
+    value_len = fp.read(4)
+    if not value_len:
+      raise EOFError('Expected EOF while reading value len')
+    value_len = int.from_bytes(value_len, byteorder='little') * 4
+    value = fp.read(value_len)
+    if len(value) != value_len:
+      raise EOFError('Expected EOF while reading value')
     value = _decrypt_bytes(value, encryption_key)
-    sections[key] = value
+    sections[key] = value.decode('utf-8')
   return sections
 
 
-def write(data: dict, fp, encryption_key: str):
+def write(data: dict, fp, encryption_key: bytes):
   """Serialises `data` (a dictionary where all the keys and values are
   strings) to `fp` (a `.write()`-supporting file-like object).
 
-  The `encryption_key` can be obtained using either
-  `get_encryption_key_for_string` or `get_encryption_key_for_file`.
+  The `encryption_key` can be generated by the `get_encryption_key`
+  function.
   """
-  # Checking the given dictionary
-  for i, (key, value) in enumerate(data.items()):
-    if not isinstance(key, str):
-      raise TypeError(f"Key '{key}' in given dictionary is not a string")
-    if not isinstance(value, str):
-      raise TypeError(f"Value '{value}' in given dictionary is not a string")
-  # Writing to the file object
+  data = {
+    k.encode('utf-8'): v.encode('utf-8')
+    for k, v in data.items()
+  }
   for key, value in data.items():
     # Writing key
-    key = key.encode()
-    key_size = len(key).to_bytes(4, byteorder='little')
-    fp.write(key_size)
+    key_len = len(key).to_bytes(4, byteorder='little')
+    fp.write(key_len)
     fp.write(key)
     # Writing value
-    value = value.encode()
+    value_len = len(value)
+    value_len = value_len.to_bytes(4, byteorder='little')
+    fp.write(value_len)
     value = _encrypt_bytes(value, encryption_key)
-    value_size = len(value) // 4
-    value_size = value_size.to_bytes(4, byteorder='little')
-    fp.write(value_size)
     fp.write(value)
 
 
-def read_bytes(data: bytes or bytearray, encryption_key: str) -> dict:
+def read_bytes(data: bytes, encryption_key: bytes) -> dict:
   """Deserialises `data` (a `bytes` or `bytearray` instance) to a
   dictionary where all the keys and values are strings.
 
-  The `encryption_key` can be obtained using either
-  `get_encryption_key_for_string` or `get_encryption_key_for_file`.
+  The `encryption_key` can be generated by the `get_encryption_key`
+  function.
   """
   with io.BytesIO(data) as fp:
     return read(fp, encryption_key)
 
 
-def write_bytes(data: dict, encryption_key: str) -> bytes:
+def write_bytes(data: dict, encryption_key: bytes) -> bytes:
   """Serialises `data` (a dictionary where all the keys and values are
   strings) to `bytes`.
 
-  The `encryption_key` can be obtained using either
-  `get_encryption_key_for_string` or `get_encryption_key_for_file`.
+  The `encryption_key` can be generated by the `get_encryption_key`
+  function.
   """
   file = io.BytesIO()
   write(data, file, encryption_key)
@@ -202,7 +157,7 @@ def read_file(file) -> dict:
   """Deserialises the contents of the `file` (a `str` or path-like
   object) to a dictionary where all the keys and values are strings.
   """
-  encryption_key = get_encryption_key_for_file(file)
+  encryption_key = get_encryption_key(file)
   with open(file, 'rb') as fp:
     return read(fp, encryption_key)
 
@@ -212,6 +167,6 @@ def write_file(data: dict, file):
   strings) and writes the result to the `file` (a `str` or path-like
   object).
   """
-  encryption_key = get_encryption_key_for_file(file)
+  encryption_key = get_encryption_key(file)
   with open(file, 'wb') as fp:
     write(data, fp, encryption_key)
