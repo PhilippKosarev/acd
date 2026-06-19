@@ -27,6 +27,7 @@ Issues = "https://github.com/philippkosarev/acd/issues"
 acd = "acd.cli:main"
 
 [dependency-groups]
+test = ['pytest']
 docs = [
   "sphinx",
   "sphinx-copybutton",
