@@ -12,7 +12,7 @@ classifiers = [
   "Operating System :: OS Independent",
 ]
 
-requires-python = ">= 3.14.0"
+requires-python = ">= 3.8.0"
 depencencies = []
 
 [[project.authors]]
@@ -20,14 +20,16 @@ name = "Philipp Kosarev"
 email = "philipp.kosarev@gmail.com"
 
 [project.urls]
-Homepage = "https://github.com/philippkosarev/acd"
-Issues = "https://github.com/philippkosarev/acd/issues"
+homepage = "https://github.com/philippkosarev/acd"
+source = "https://github.com/philippkosarev/acd"
+issues = "https://github.com/philippkosarev/acd/issues"
+documentation = "https://philippkosarev.github.io/acd"
 
 [project.scripts]
 acd = "acd.cli:main"
 
 [dependency-groups]
-test = ['pytest']
+test = ["pytest"]
 docs = [
   "sphinx",
   "sphinx-copybutton",
