@@ -20,34 +20,52 @@ The acd CLI provides only 3 commands: `view`, `unpack` and `pack`. The names of 
 
 To view what's inside a .acd file, you can run `acd view`.
 ```sh
-$ acd view ./data.acd
-Available files:
-  1) aero.ini                  2) ai.ini                  3) ambient_shadows.ini
-  4) analog_instruments.ini    5) analog_speed_curve.lut  6) blurred_objects.ini
-  7) brakes.ini                8) cameras.ini             9) car.ini
-  10) colliders.ini            11) damage.ini             12) dash_cam.ini
-  13) digital_instruments.ini  14) driver3d.ini           15) drivetrain.ini
-  16) electronics.ini          17) engine.ini             18) escmode.ini
-  19) final.rto                20) fin_AOA_CD.lut         21) fin_AOA_CL.lut
-  22) fuel_cons.ini            23) lights.ini             24) lods.ini
-  25) mirrors.ini              26) power.lut              27) proview_nodes.ini
-  28) setup.ini                29) sounds.ini             30) suspensions.ini
-  31) suspension_graphics.ini  32) tcurve_wdt_front.lut   33) tcurve_wdt_rear.lut
-  34) throttle.lut             35) tyres.ini              36) tyres_wdt.lut
-  37) wing_animations.ini      38) wing_body_AOA_CD.lut   39) wing_body_AOA_CL.lut
-  40) wing_front_AOA_CD.lut    41) wing_front_AOA_CL.lut  42) wing_rear_AOA_CD.lut
-  43) wing_rear_AOA_CL.lut
+$ acd view data.acd
+Available items:
+  1) aero.ini                    17) drs.ini                    33) suspension_graphics.ini
+  2) ai.ini                      18) electronics.ini            34) suspensions.ini
+  3) ambient_shadows.ini         19) engine.ini                 35) tcurve_wdt_front.lut
+  4) analog_instruments.ini      20) escmode.ini                36) tcurve_wdt_rear.lut
+  5) analog_speed_curve.lut      21) fin_AOA_CD.lut             37) throttle.lut
+  6) analog_turbo_curve.lut      22) fin_AOA_CL.lut             38) tyres.ini
+  7) blurred_objects.ini         23) final.rto                  39) tyres_wdt.lut
+  8) brakes.ini                  24) flame_presets.ini          40) wing_animations.ini
+  9) cameras.ini                 25) flames.ini                 41) wing_body_AOA_CD.lut
+  10) car.ini                    26) lights.ini                 42) wing_body_AOA_CL.lut
+  11) colliders.ini              27) lods.ini                   43) wing_front_AOA_CD.lut
+  12) damage.ini                 28) mirrors.ini                44) wing_front_AOA_CL.lut
+  13) dash_cam.ini               29) power.lut                  45) wing_rear_AOA_CD.lut
+  14) digital_instruments.ini    30) proview_nodes.ini          46) wing_rear_AOA_CL.lut
+  15) driver3d.ini               31) setup.ini
+  16) drivetrain.ini             32) sounds.ini
 
-Input which file to view (1-43, 0 to abort): 25
-mirrors.ini:
-[MIRROR_0]
-NAME=mirrorL
+Select which item to view (1-46, 0 to abort): 2
+[GEARS]
+UP=6900
+DOWN=4000
+SLIP_THRESHOLD=0.95
+GAS_CUTOFF_TIME=0.300
 
-[MIRROR_1]
-NAME=mirrorR
+[PEDALS]
+GASGAIN=4.0
+BRAKE_HINT=0.87
+TRAIL_HINT=0.5
 
-[MIRROR_2]
-NAME=mirrorC
+[STEER]
+STEER_GAIN=1.61
+
+[LOOKAHEAD]
+BASE=17.1
+GAS_BRAKE_LOOKAHEAD=10
+
+[HEADER]
+VERSION=3
+
+[ULTRA_GRIP]
+VALUE=1.2
+
+[PHYSICS_HINTS]
+AERO_HINT=1
 ```
 
 To pack a directory into a .acd file, you can run `acd pack`.
@@ -68,12 +86,12 @@ dash_cam.ini             proview_nodes.ini        wing_rear_AOA_CD.lut
 digital_instruments.ini  setup.ini                wing_rear_AOA_CL.lut
 driver3d.ini             sounds.ini
 drivetrain.ini           suspension_graphics.ini
-$ acd pack ./data_dir data.acd
+$ acd pack data_dir data.acd
 ```
 
-To unpack the contents of a .acd file into a directory, you can run `acd unpack`.
+To unpack the contents of a .acd file into a directory, you can use `acd unpack`.
 ```sh
-$ acd unpack ./data.acd data_dir
+$ acd unpack data.acd data_dir
 $ ls data_dir
 aero.ini                 electronics.ini          suspensions.ini
 ai.ini                   engine.ini               tcurve_wdt_front.lut
